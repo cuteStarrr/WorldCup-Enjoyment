@@ -6,8 +6,10 @@ import static com.ss.bytertc.engine.type.AudioScenarioType.AUDIO_SCENARIO_HIGHQU
 import static com.ss.video.rtc.demo.advanced.sharescreen.ShareScreenComponent.REQUEST_CODE_OF_SCREEN_SHARING;
 import static com.ss.video.rtc.demo.advanced.utils.CommonUtil.byteBufferToString;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.ColorDrawable;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.os.Handler;
@@ -15,12 +17,18 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.SurfaceView;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.PopupMenu;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -126,7 +134,6 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
     private ImageView mSpeakerIv;
     private ImageView mAudioIv;
     private ImageView mVideoIv;
-    private ImageView mSetting;
     private ImageView mBeautyIv;
     private TextView mUserIDTV;
 
@@ -146,6 +153,12 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
 
     private final VolcEffectManager mVolcEffectManager = new VolcEffectManager();
     private EffectModel mEffectModel;
+
+    public int dpToPx(float dpValue) {
+        final float scale = getApplicationContext().getResources().getDisplayMetrics().density;
+        return (int) (dpValue * scale + 0.5f);
+    }
+
     private final EffectNodeCallback mEffectNodeCallback = new EffectNodeCallback() {
         @Override
         public void onEffectClicked(EffectNode effectNode) {
@@ -373,6 +386,40 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
         mVolcEffectManager.initEffect(mRTCVideo);
 
 
+        //设置更多功能按钮
+        ImageView button_more = findViewById(R.id.button_more);
+        button_more.setOnClickListener(new View.OnClickListener() {
+            @SuppressLint("InflateParams")
+            @Override
+            public void onClick(View view) {
+                //出现更多功能菜单
+                PopupWindow popupWindow = new PopupWindow(RTCRoomActivity.this);
+                popupWindow.setWidth(ViewGroup.LayoutParams.WRAP_CONTENT);
+                popupWindow.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
+                popupWindow.setContentView(LayoutInflater.from(RTCRoomActivity.this).inflate(R.layout.more_function, null));
+                popupWindow.setBackgroundDrawable(new ColorDrawable(0x00000000));
+                popupWindow.setOutsideTouchable(true);
+                popupWindow.setFocusable(true);
+                LinearLayout bottom_bar = findViewById(R.id.bottom_bar);
+                popupWindow.showAsDropDown(findViewById(R.id.button_more), 0, -bottom_bar.getHeight()-dpToPx(44));
+
+                //设置setting按钮点击事件
+                ImageView button_setting = popupWindow.getContentView().findViewById(R.id.setting_btn);
+                button_setting.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        RoomSettingsDialog settingsDialog = new RoomSettingsDialog();
+                        settingsDialog.setConfig(mRTCVideo, mRTCRoom);
+                        FragmentManager fragmentManager = getSupportFragmentManager();
+                        FragmentTransaction ft = fragmentManager.beginTransaction();
+                        ft.add(settingsDialog, RoomSettingsDialog.TAG_FOR_SHOW);
+                        ft.commitAllowingStateLoss();
+                    }
+                });
+            }
+        });
+
+
         Log.e("RTCRoom", "RTCRoomActivity.onCreate  this:" + this);
     }
 
@@ -401,20 +448,12 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
         mSpeakerIv = findViewById(R.id.switch_audio_router);
         mAudioIv = findViewById(R.id.switch_local_audio);
         mVideoIv = findViewById(R.id.switch_local_video);
-        mSetting = findViewById(R.id.setting_btn);
+        //mSetting = findViewById(R.id.setting_btn);
         mBeautyIv = findViewById(R.id.beauty);
         findViewById(R.id.hang_up).setOnClickListener((v) -> onBackPressed());
         mSpeakerIv.setOnClickListener((v) -> updateSpeakerStatus());
         mAudioIv.setOnClickListener((v) -> updateLocalAudioStatus());
         mVideoIv.setOnClickListener((v) -> updateLocalVideoStatus());
-        mSetting.setOnClickListener(v -> {
-            RoomSettingsDialog settingsDialog = new RoomSettingsDialog();
-            settingsDialog.setConfig(mRTCVideo, mRTCRoom);
-            FragmentManager fragmentManager = getSupportFragmentManager();
-            FragmentTransaction ft = fragmentManager.beginTransaction();
-            ft.add(settingsDialog, RoomSettingsDialog.TAG_FOR_SHOW);
-            ft.commitAllowingStateLoss();
-        });
         mBeautyIv.setOnClickListener((v) -> showCVDialog());
         TextView roomIDTV = findViewById(R.id.room_id_text);
         mUserIDTV = findViewById(R.id.self_video_user_id_tv);
