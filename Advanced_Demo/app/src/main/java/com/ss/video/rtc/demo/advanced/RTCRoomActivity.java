@@ -8,6 +8,7 @@ import static com.ss.video.rtc.demo.advanced.utils.CommonUtil.byteBufferToString
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.os.Handler;
@@ -453,7 +454,9 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
         mRTCRoom.setRTCRoomEventHandler(mItcRoomEventHandler);
         RTCRoomConfig roomConfig = new RTCRoomConfig(ChannelProfile.CHANNEL_PROFILE_COMMUNICATION,
                 true, true, true);
-        int joinRoomRes = mRTCRoom.joinRoom(Constants.TOKEN,
+        SharedPreferences sharedPref = getSharedPreferences(getString(R.string.token_file), Context.MODE_PRIVATE);
+        String token = sharedPref.getString(roomId, getString(R.string.default_preference_string));
+        int joinRoomRes = mRTCRoom.joinRoom(token,
                 UserInfo.create(userId, ""), roomConfig);
         Log.i(TAG, "initEngineAndJoinRoom: " + joinRoomRes);
     }

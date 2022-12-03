@@ -39,4 +39,14 @@
     <string name="local_video_mirror_type">镜像模式</string>
 
     <string name="effect_dialog_title">特效</string>
+
+    <string name="enter_room">进入房间</string>
+    <string name="create_room">创建房间</string>
+    <string name="dialog_input_password">输入密码</string>
+    <string name="start">确定</string>
+    <string name="cancel">取消</string>
+    <string name="token_file">com.ss.video.rtc.demo.advanced.TOKEN</string>
+    <string name="password_file">com.ss.video.rtc.demo.advanced.PASSWORD</string>
+    <string name="default_preference_string">!</string>
+
 </resources>
