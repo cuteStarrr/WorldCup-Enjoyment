@@ -95,12 +95,13 @@
             app:layout_constraintRight_toLeftOf="@id/hang_up" />
 
         <ImageView
-            android:id="@+id/setting_btn"
+            android:id="@+id/button_more"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_gravity="center_vertical|right"
+            android:background="@color/white"
             android:layout_weight="1"
-            android:src="@drawable/settings" />
+            android:src="@drawable/ic_baseline_more_horiz_24" />
     </LinearLayout>
 
     <FrameLayout
