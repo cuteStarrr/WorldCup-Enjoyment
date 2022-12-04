@@ -1,9 +1,13 @@
 package com.ss.video.rtc.demo.advanced;
 
+import static com.ss.video.rtc.demo.advanced.RoomCreation.startActivityBasedOnNum;
+
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -42,10 +46,9 @@ public class PasswordInputDialogFragment extends DialogFragment {
                         // sign in the user ...
                         mPassword = dialog_layout.findViewById(R.id.password);
                         if(mPassword.getText().toString().equals(password)) {
-                            Intent intent = new Intent(getActivity(), RTCRoomActivity.class);
-                            intent.putExtra(Constants.ROOM_ID_EXTRA, roomID);
-                            intent.putExtra(Constants.USER_ID_EXTRA, userID);
-                            startActivity(intent);
+                            SharedPreferences sharedPref = getContext().getSharedPreferences(getString(R.string.maxnum_file), Context.MODE_PRIVATE);
+                            Boolean num_flag = sharedPref.getBoolean(roomID, true);
+                            startActivity(startActivityBasedOnNum(roomID, userID, num_flag, getContext()));
                         }
                         else {
                             Toast.makeText(getContext(), "密码错误", Toast.LENGTH_SHORT).show();

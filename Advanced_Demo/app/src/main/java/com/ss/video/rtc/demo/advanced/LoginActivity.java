@@ -1,5 +1,7 @@
 package com.ss.video.rtc.demo.advanced;
 
+import static com.ss.video.rtc.demo.advanced.RoomCreation.startActivityBasedOnNum;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -96,14 +98,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 password_dialog.show(getSupportFragmentManager(), "password");
             }
             else {
-                Intent intent = new Intent(this, RTCRoomActivity.class);
-                intent.putExtra(Constants.ROOM_ID_EXTRA, roomId);
-                intent.putExtra(Constants.USER_ID_EXTRA, userId);
-                startActivity(intent);
+                SharedPreferences sharedPref_num = getSharedPreferences(getString(R.string.maxnum_file), Context.MODE_PRIVATE);
+                Boolean num_flag = sharedPref_num.getBoolean(roomId, true);
+                startActivity(startActivityBasedOnNum(roomId, userId, num_flag, this));
             }
         }
         else {
-            Toast.makeText(this, "该房间号不存在！", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "该房间号不存在", Toast.LENGTH_SHORT).show();
             return ;
         }
 

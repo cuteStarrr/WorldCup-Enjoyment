@@ -18,7 +18,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginLeft="32dp"
-        android:layout_marginTop="150dp"
+        android:layout_marginTop="120dp"
         android:layout_marginRight="32dp"
         android:hint="请输入房间名"
         app:layout_constraintBottom_toTopOf="@id/creation_password_input"
@@ -38,9 +38,58 @@
         android:maxLines="1"
         android:singleLine="true"
         app:layout_constraintTop_toBottomOf="@+id/creation_room_id_input"
-        app:layout_constraintBottom_toTopOf="@id/creation_user_id_input"
+        app:layout_constraintBottom_toTopOf="@id/creation_ratiogroup_container4maxnum"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/creation_ratiogroup_container4maxnum"
+        android:layout_height="wrap_content"
+        android:layout_width="0dp"
+        android:layout_marginLeft="32dp"
+        android:layout_marginRight="32dp"
+        android:layout_marginTop="20dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/creation_password_input"
+        app:layout_constraintBottom_toTopOf="@id/creation_user_id_input"
+        >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="请选择进入房间的最大人数"
+            android:textSize="18dp"
+            android:layout_marginLeft="4dp"
+            android:layout_marginTop="4dp"
+            android:layout_weight="3"
+            />
+
+        <RadioGroup
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_weight="2">
+
+            <RadioButton
+                android:id="@+id/creation_ratiobutton_maxnum_4"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="4"
+                android:checked="true"
+                android:onClick="onRadioButtonClicked"/>
+
+            <RadioButton
+                android:id="@+id/creation_ratiobutton_maxnum_8"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="8"
+                android:onClick="onRadioButtonClicked"/>
+
+        </RadioGroup>
+    </LinearLayout>
 
     <EditText
         android:id="@+id/creation_user_id_input"
@@ -55,7 +104,7 @@
         android:singleLine="true"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/creation_password_input" />
+        app:layout_constraintTop_toBottomOf="@+id/creation_ratiogroup_container4maxnum" />
 
     <TextView
         android:id="@+id/create_room_btn"

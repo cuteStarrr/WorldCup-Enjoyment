@@ -15,6 +15,8 @@ public class Constants {
     //INPUT_REGEX SDK 对房间名、用户名的限制是：非空且最大长度不超过128位的数字、大小写字母、@ . _ -
     public static final String INPUT_REGEX = "^[a-zA-Z0-9@._-]{1,128}$";
 
+    public static final String PASSWORD_REGEX = "^[a-zA-Z0-9]{0,128}$";
+
     public static final String ROOM_ID_EXTRA = "extra_room_id";
 
     public static final String USER_ID_EXTRA = "extra_user_id";

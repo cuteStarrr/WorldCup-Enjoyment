@@ -15,6 +15,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -33,6 +34,7 @@ public class RoomCreation extends AppCompatActivity implements View.OnClickListe
     private EditText mRoomInput;
     private EditText mUserInput;
     private EditText mPasswordInput;
+    private Boolean check_flag_4 = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +59,25 @@ public class RoomCreation extends AppCompatActivity implements View.OnClickListe
                 PERMISSIONS_REQUEST_CODE);
     }
 
+    public void onRadioButtonClicked(View view) {
+        // Is the button now checked?
+        boolean checked = ((RadioButton) view).isChecked();
+
+        // Check which radio button was clicked
+        switch(view.getId()) {
+            case R.id.creation_ratiobutton_maxnum_4:
+                if (checked) {
+                    check_flag_4 = true;
+                    break;
+                }
+            case R.id.creation_ratiobutton_maxnum_8:
+                if (checked) {
+                    check_flag_4 = false;
+                    break;
+                }
+        }
+    }
+
     private void joinChannel(String roomId, String userId, String password) {
         if (TextUtils.isEmpty(roomId)) {
             Toast.makeText(this, "房间号不能为空", Toast.LENGTH_SHORT).show();
@@ -67,23 +88,53 @@ public class RoomCreation extends AppCompatActivity implements View.OnClickListe
             return;
         }
         if (!Pattern.matches(Constants.INPUT_REGEX, roomId)) {
-            Toast.makeText(this, "房间号格式错误", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "房间号格式错误,正确格式应为：非空且最大长度不超过128位的数字、大小写字母、@ . _ -", Toast.LENGTH_SHORT).show();
             return;
         }
         if (!Pattern.matches(Constants.INPUT_REGEX, userId)) {
-            Toast.makeText(this, "用户名格式错误", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "用户名格式错误,正确格式应为：非空且最大长度不超过128位的数字、大小写字母、@ . _ -", Toast.LENGTH_SHORT).show();
             return;
         }
+        if (!Pattern.matches(Constants.PASSWORD_REGEX, password)) {
+            Toast.makeText(this, "密码格式错误,正确格式应为：最大长度不超过128位的数字和大小写字母", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         SharedPreferences sharedPref = getSharedPreferences(getString(R.string.password_file), Context.MODE_PRIVATE);
+        String exist_flag = sharedPref.getString(roomId, getString(R.string.default_preference_string));
+        if(!exist_flag.equals(getString(R.string.default_preference_string))) {
+            Toast.makeText(this, "该房间号已存在，请修改房间号", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        SharedPreferences sharedPref_num = getSharedPreferences(getString(R.string.maxnum_file), Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor_num = sharedPref_num.edit();
+        editor_num.putBoolean(roomId, check_flag_4);
+        editor_num.apply();
+
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putString(roomId, password);
         editor.apply();
 
         initToken(roomId, userId);
-        Intent intent = new Intent(this, RTCRoomActivity.class);
-        intent.putExtra(Constants.ROOM_ID_EXTRA, roomId);
-        intent.putExtra(Constants.USER_ID_EXTRA, userId);
-        startActivity(intent);
+
+        startActivity(startActivityBasedOnNum(roomId, userId, check_flag_4, this));
+
+    }
+
+    public static Intent startActivityBasedOnNum(String roomId, String userId, Boolean num_flag, Context context) {
+        if(num_flag) {
+            Intent intent = new Intent(context, RTCRoomActivity.class);
+            intent.putExtra(Constants.ROOM_ID_EXTRA, roomId);
+            intent.putExtra(Constants.USER_ID_EXTRA, userId);
+            return intent;
+        }
+        else {
+            Intent intent = new Intent(context, RTCRoom4EightActivity.class);
+            intent.putExtra(Constants.ROOM_ID_EXTRA, roomId);
+            intent.putExtra(Constants.USER_ID_EXTRA, userId);
+            return intent;
+        }
     }
 
     private void initToken(String roomID, String userID) {

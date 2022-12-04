@@ -129,7 +129,9 @@ import java.util.concurrent.TimeUnit;
  *
  * 详细的API文档参见{https://www.volcengine.com/docs/6348/70080}
  */
-public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.ConfigObserver {
+
+public class RTCRoom4EightActivity extends AppCompatActivity implements ConfigManger.ConfigObserver {
+
     private static final String TAG = "RTCRoomActivity";
 
     private String mRoomId;
@@ -148,7 +150,7 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
     private FrameLayout mSelfContainer;
     private FrameLayout[] mRemoteContainerArray;
     private TextView[] mUserIdTvArray;
-    private final RemoteStreamKey[] mShowRemoteStreamArray = new RemoteStreamKey[3];
+    private final RemoteStreamKey[] mShowRemoteStreamArray = new RemoteStreamKey[7];
 
     private RTCVideo mRTCVideo;
     private RTCRoom mRTCRoom;
@@ -306,7 +308,7 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
             } else {
                 tip = "点对点消息发送成功";
             }
-            runOnUiThread(() -> SafeToast.show(RTCRoomActivity.this, tip, Toast.LENGTH_SHORT));
+            runOnUiThread(() -> SafeToast.show(RTCRoom4EightActivity.this, tip, Toast.LENGTH_SHORT));
         }
 
         @Override
@@ -370,7 +372,7 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_room);
+        setContentView(R.layout.activity_rtcroom4_eight);
         if(this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT){
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         }
@@ -399,10 +401,10 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
             @Override
             public void onClick(View view) {
                 //出现更多功能菜单
-                PopupWindow popupWindow = new PopupWindow(RTCRoomActivity.this);
+                PopupWindow popupWindow = new PopupWindow(RTCRoom4EightActivity.this);
                 popupWindow.setWidth(ViewGroup.LayoutParams.WRAP_CONTENT);
                 popupWindow.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
-                popupWindow.setContentView(LayoutInflater.from(RTCRoomActivity.this).inflate(R.layout.more_function, null));
+                popupWindow.setContentView(LayoutInflater.from(RTCRoom4EightActivity.this).inflate(R.layout.more_function, null));
                 popupWindow.setBackgroundDrawable(new ColorDrawable(0x00000000));
                 popupWindow.setOutsideTouchable(true);
                 popupWindow.setFocusable(true);
@@ -439,16 +441,24 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
     }
 
     private void initUI(String roomId, String userId) {
-        mSelfContainer = findViewById(R.id.self_video_container);
+        mSelfContainer = findViewById(R.id.self_video_container_4eight);
         mRemoteContainerArray = new FrameLayout[]{
-                findViewById(R.id.remote_video_0_container),
-                findViewById(R.id.remote_video_1_container),
-                findViewById(R.id.remote_video_2_container)
+                findViewById(R.id.remote_video_0_container_4eight),
+                findViewById(R.id.remote_video_1_container_4eight),
+                findViewById(R.id.remote_video_2_container_4eight),
+                findViewById(R.id.remote_video_3_container_4eight),
+                findViewById(R.id.remote_video_4_container_4eight),
+                findViewById(R.id.remote_video_5_container_4eight),
+                findViewById(R.id.remote_video_6_container_4eight)
         };
         mUserIdTvArray = new TextView[]{
-                findViewById(R.id.remote_video_0_user_id_tv),
-                findViewById(R.id.remote_video_1_user_id_tv),
-                findViewById(R.id.remote_video_2_user_id_tv)
+                findViewById(R.id.remote_video_0_user_id_tv_4eight),
+                findViewById(R.id.remote_video_1_user_id_tv_4eight),
+                findViewById(R.id.remote_video_2_user_id_tv_4eight),
+                findViewById(R.id.remote_video_3_user_id_tv_4eight),
+                findViewById(R.id.remote_video_4_user_id_tv_4eight),
+                findViewById(R.id.remote_video_5_user_id_tv_4eight),
+                findViewById(R.id.remote_video_6_user_id_tv_4eight)
         };
         findViewById(R.id.switch_camera).setOnClickListener((v) -> onSwitchCameraClick());
         mSpeakerIv = findViewById(R.id.switch_audio_router);
@@ -462,7 +472,7 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
         mVideoIv.setOnClickListener((v) -> updateLocalVideoStatus());
         mBeautyIv.setOnClickListener((v) -> showCVDialog());
         TextView roomIDTV = findViewById(R.id.room_id_text);
-        mUserIDTV = findViewById(R.id.self_video_user_id_tv);
+        mUserIDTV = findViewById(R.id.self_video_user_id_tv_4eight);
         roomIDTV.setText(String.format("RoomID:%s", roomId));
         mUserIDTV.setText(String.format("UserID:%s", userId));
         if (needShareScreen()) {

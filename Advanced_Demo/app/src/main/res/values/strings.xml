@@ -47,6 +47,7 @@
     <string name="cancel">取消</string>
     <string name="token_file">com.ss.video.rtc.demo.advanced.TOKEN</string>
     <string name="password_file">com.ss.video.rtc.demo.advanced.PASSWORD</string>
+    <string name="maxnum_file">com.ss.video.rtc.demo.advanced.MAXNUM</string>
     <string name="default_preference_string">!</string>
 
 </resources>
