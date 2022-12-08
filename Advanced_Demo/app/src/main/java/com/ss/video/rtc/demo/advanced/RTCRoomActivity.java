@@ -18,6 +18,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
+import android.os.Message;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
@@ -67,6 +68,7 @@ import com.ss.bytertc.engine.type.VideoDeviceType;
 import com.ss.bytertc.engine.video.IVideoSink;
 import com.ss.bytertc.engine.video.builder.CpuBufferVideoFrameBuilder;
 import com.ss.rtc.demo.advanced.R;
+import com.ss.video.rtc.demo.advanced.chat.ChatMessage;
 import com.ss.video.rtc.demo.advanced.effects.EffectNodeCallback;
 import com.ss.video.rtc.demo.advanced.effects.dialog.VideoEffectDialog;
 import com.ss.video.rtc.demo.advanced.effects.manager.VolcEffectManager;
@@ -95,7 +97,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * VolcEngineRTC 视频通话的主页面
  * 本示例不限制房间内最大用户数；同时最多渲染四个用户的视频数据（自己和三个远端用户视频数据）；
- *
+ * <p>
  * 包含如下简单功能：
  * - 创建引擎
  * - 设置视频发布参数
@@ -107,33 +109,33 @@ import java.util.concurrent.TimeUnit;
  * - 渲染远端用户的视频数据
  * - 离开房间
  * - 销毁引擎
- *
+ * <p>
  * 实现一个基本的音视频通话的流程如下：
  * 1.创建 IRTCVideo 实例。
- *   RTCVideo.createRTCVideo(Context context, String appId, IRTCVideoEventHandler handler,
- *     Object eglContext, JSONObject parameters)
+ * RTCVideo.createRTCVideo(Context context, String appId, IRTCVideoEventHandler handler,
+ * Object eglContext, JSONObject parameters)
  * 2.视频发布端设置期望发布的最大分辨率视频流参数，包括分辨率、帧率、码率、缩放模式、网络不佳时的回退策略等。
- *   RTCVideo.setVideoEncoderConfig(VideoEncoderConfig maxSolution)
+ * RTCVideo.setVideoEncoderConfig(VideoEncoderConfig maxSolution)
  * 3.开启本地视频采集。 RTCVideo.startVideoCapture()
  * 4.设置本地视频渲染时，使用的视图，并设置渲染模式。
- *   RTCVideo.setLocalVideoCanvas(StreamIndex streamIndex, VideoCanvas videoCanvas)
+ * RTCVideo.setLocalVideoCanvas(StreamIndex streamIndex, VideoCanvas videoCanvas)
  * 5.创建房间。RTCVideo.createRTCRoom(String roomId)
  * 6.加入音视频通话房间。
- *   RTCRoom.joinRoom(String token, UserInfo userInfo, RTCRoomConfig roomConfig)
+ * RTCRoom.joinRoom(String token, UserInfo userInfo, RTCRoomConfig roomConfig)
  * 7.SDK 接收并解码远端视频流首帧后，设置用户的视频渲染视图。
- *   RTCVideo.setRemoteVideoCanvas(String userId, StreamIndex streamIndex, VideoCanvas videoCanvas)
+ * RTCVideo.setRemoteVideoCanvas(String userId, StreamIndex streamIndex, VideoCanvas videoCanvas)
  * 8.在用户离开房间之后移出用户的视频渲染视图。
  * 9.离开音视频通话房间。RTCRoom.leaveRoom()
  * 10.调用 RTCRoom.destroy() 销毁房间对象。
  * 11.调用 RTCVideo.destroyRTCVideo() 销毁引擎。
- *
+ * <p>
  * 详细的API文档参见{https://www.volcengine.com/docs/6348/70080}
  */
 public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.ConfigObserver {
     private static final String TAG = "RTCRoomActivity";
 
     private String mRoomId;
-    //private Boolean flag = true;
+    private String mUserId;
 
     private ImageView mSpeakerIv;
     private ImageView mAudioIv;
@@ -157,6 +159,8 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
 
     private final VolcEffectManager mVolcEffectManager = new VolcEffectManager();
     private EffectModel mEffectModel;
+
+    private ChatDialog mChatDialog = null;
 
     public int dpToPx(float dpValue) {
         final float scale = getApplicationContext().getResources().getDisplayMetrics().density;
@@ -385,6 +389,8 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
         String token = intent.getStringExtra(Constants.TOKEN_EXTRA);
         Log.d(TAG, "before initUI");
         //while(flag) ;
+        mUserId = userId;
+
         initUI(mRoomId, userId);
         initEngineAndJoinRoom(mRoomId, userId, token);
         ConfigManger.getInstance().addObserver(this);
@@ -398,7 +404,12 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
         mEffectModel = new EffectModel(this);
         mVolcEffectManager.initEffect(mRTCVideo);
 
+        setMoreFunctionButton();//设置更多功能按钮
 
+        Log.e("RTCRoom", "RTCRoomActivity.onCreate  this:" + this);
+    }
+
+    private void setMoreFunctionButton() {
         //设置更多功能按钮
         ImageView button_more = findViewById(R.id.button_more);
         button_more.setOnClickListener(new View.OnClickListener() {
@@ -414,7 +425,7 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
                 popupWindow.setOutsideTouchable(true);
                 popupWindow.setFocusable(true);
                 LinearLayout bottom_bar = findViewById(R.id.bottom_bar);
-                popupWindow.showAsDropDown(findViewById(R.id.button_more), 0, -bottom_bar.getHeight()-dpToPx(44));
+                popupWindow.showAsDropDown(findViewById(R.id.button_more), 0, -bottom_bar.getHeight() - dpToPx(44));
 
                 //设置setting按钮点击事件
                 ImageView button_setting = popupWindow.getContentView().findViewById(R.id.setting_btn);
@@ -429,11 +440,22 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
                         ft.commitAllowingStateLoss();
                     }
                 });
+
+                //设置chat按钮
+                ImageView button_chat = popupWindow.getContentView().findViewById(R.id.button_chat);
+                button_chat.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if (mChatDialog == null){
+                            mChatDialog = new ChatDialog();
+                            mChatDialog.setConfig(mRTCRoom, mUserId);
+                        }
+                        FragmentManager fragmentManager = getSupportFragmentManager();
+                        mChatDialog.show(fragmentManager,ChatDialog.TAG_FOR_SHOW);
+                    }
+                });
             }
         });
-
-
-        Log.e("RTCRoom", "RTCRoomActivity.onCreate  this:" + this);
     }
 
     @Override
@@ -852,5 +874,7 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
                 }
             }, 2000);
         });
+        ChatMessage message_t = new ChatMessage(message, uid, ChatMessage.TYPE_RECEIVED);
+        mChatDialog.addMessage(message_t);
     }
 }
