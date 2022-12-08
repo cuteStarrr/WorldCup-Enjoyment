@@ -5,6 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/grey"
+    android:clipToPadding="false"
+    android:fitsSystemWindows="true"
     tools:context="com.ss.video.rtc.demo.advanced.RTCRoom4EightActivity">
 
     <FrameLayout
