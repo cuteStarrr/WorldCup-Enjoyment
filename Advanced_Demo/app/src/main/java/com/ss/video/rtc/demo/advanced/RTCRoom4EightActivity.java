@@ -14,6 +14,7 @@ import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.drawable.ColorDrawable;
 import android.hardware.Camera;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -375,6 +376,11 @@ public class RTCRoom4EightActivity extends AppCompatActivity implements ConfigMa
         setContentView(R.layout.activity_rtcroom4_eight);
         if(this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT){
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+            getWindow().setStatusBarColor(getColor(R.color.white));
+            getWindow().setNavigationBarColor(getColor(R.color.white));
         }
         Intent intent = getIntent();
         mRoomId = intent.getStringExtra(Constants.ROOM_ID_EXTRA);

@@ -3,46 +3,52 @@ package com.ss.video.rtc.demo.advanced;
 import static com.ss.bytertc.engine.data.VideoSourceType.VIDEO_SOURCE_TYPE_EXTERNAL;
 import static com.ss.bytertc.engine.data.VideoSourceType.VIDEO_SOURCE_TYPE_INTERNAL;
 import static com.ss.bytertc.engine.type.AudioScenarioType.AUDIO_SCENARIO_HIGHQUALITY_COMMUNICATION;
-import static com.ss.video.rtc.demo.advanced.sharescreen.ShareScreenComponent.REQUEST_CODE_OF_SCREEN_SHARING;
 import static com.ss.video.rtc.demo.advanced.utils.CommonUtil.byteBufferToString;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.hardware.Camera;
+import android.media.projection.MediaProjectionManager;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
-import android.os.Message;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.Gravity;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.SurfaceView;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.PopupMenu;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.VideoView;
 
+import androidx.annotation.MainThread;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
-import com.ss.bytertc.engine.RTCEngine;
 import com.ss.bytertc.engine.RTCRoom;
 import com.ss.bytertc.engine.RTCRoomConfig;
 import com.ss.bytertc.engine.RTCVideo;
@@ -53,11 +59,12 @@ import com.ss.bytertc.engine.data.AudioRoute;
 import com.ss.bytertc.engine.data.CameraId;
 import com.ss.bytertc.engine.data.MirrorType;
 import com.ss.bytertc.engine.data.RemoteStreamKey;
+import com.ss.bytertc.engine.data.ScreenMediaType;
 import com.ss.bytertc.engine.data.StreamIndex;
 import com.ss.bytertc.engine.data.VideoPixelFormat;
 import com.ss.bytertc.engine.data.VideoRotation;
+import com.ss.bytertc.engine.data.VideoSourceType;
 import com.ss.bytertc.engine.handler.AppExecutors;
-import com.ss.bytertc.engine.handler.IRTCEngineEventHandler;
 import com.ss.bytertc.engine.handler.IRTCRoomEventHandler;
 import com.ss.bytertc.engine.handler.IRTCVideoEventHandler;
 import com.ss.bytertc.engine.type.ChannelProfile;
@@ -87,6 +94,8 @@ import com.ss.video.rtc.demo.advanced.sharescreen.ShareScreenComponent;
 import com.ss.video.rtc.demo.advanced.utils.CommonUtil;
 import com.ss.video.rtc.demo.basic_module.utils.SafeToast;
 import com.ss.video.rtc.demo.basic_module.utils.Utilities;
+
+import org.webrtc.RXScreenCaptureService;
 
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
@@ -142,7 +151,14 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
     private ImageView mVideoIv;
     private ImageView mBeautyIv;
     private TextView mUserIDTV;
+    private ImageView mShareVideoIv;//开启/关闭分享本地视频图标
+    private VideoView mVideoView;
+    private MediaProjectionManager mProjectionManager;//屏幕共享
 
+    public static final int SELECT_LOCAL_VIDEO = 127;
+
+    private boolean mShareVideo = false; //是否分享本地视频
+    private boolean mIsSharing = false; //是否正在播放本地分享视频
     private boolean mIsSpeakerPhone = true;
     private boolean mIsMuteAudio = false;
     private boolean mIsMuteVideo = false;
@@ -381,6 +397,11 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
         if(this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT){
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+            getWindow().setStatusBarColor(getColor(R.color.white));
+            getWindow().setNavigationBarColor(getColor(R.color.white));
+        }
         Intent intent = getIntent();
         mRoomId = intent.getStringExtra(Constants.ROOM_ID_EXTRA);
         String userId = intent.getStringExtra(Constants.USER_ID_EXTRA);
@@ -451,6 +472,12 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
                         mChatDialog.show(fragmentManager,ChatDialog.TAG_FOR_SHOW);
                     }
                 });
+
+                //设置切换分享本地视频的按钮的点击事件
+                mShareVideoIv = popupWindow.getContentView().findViewById(R.id.switch_share_video);
+                mShareVideoIv.setImageResource(mShareVideo ? R.drawable.screen_share_on : R.drawable.screen_share_off);
+                mShareVideoIv.setColorFilter(mShareVideo ? Color.TRANSPARENT : Color.GRAY);
+                mShareVideoIv.setOnClickListener((v) -> updateShareVideoStatus());
             }
         });
     }
@@ -459,6 +486,12 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         if (mShareScreenComponent != null && requestCode == REQUEST_CODE_OF_SCREEN_SHARING) {
             mShareScreenComponent.handlePermissionResult(resultCode, data);
+        } else if (requestCode == SELECT_LOCAL_VIDEO && resultCode == Activity.RESULT_OK) {//是否选择，没选择就不会继续
+            Log.i("cc_test", "into on Activity result 127");
+            Uri uri = data.getData();//得到uri，后面就是将uri转化成file的过程。
+            mVideoView.setVideoURI(uri);
+            requestPermissionForScreenSharing();
+            mVideoView.start();
         } else {
             super.onActivityResult(requestCode, resultCode, data);
         }
@@ -695,6 +728,171 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
         mVideoIv.setImageResource(mIsMuteVideo ? R.drawable.mute_video : R.drawable.normal_video);
     }
 
+
+    private void updateShareVideoStatus(){
+        if(needShareScreen()){
+            return;
+        }
+
+        mShareVideo = !mShareVideo;
+
+        mShareVideoIv.setImageResource(mShareVideo ? R.drawable.screen_share_on : R.drawable.screen_share_off);
+        mShareVideoIv.setColorFilter(mShareVideo ? Color.TRANSPARENT : Color.GRAY);
+
+
+        if(mShareVideo){
+            stopVideoCapture();
+            startVideoShare();
+        }else {
+            stopVideoShare();
+            startVideoCapture();
+        }
+    }
+
+
+
+
+    private void startVideoShare(){
+        //开一个新页播视频
+        mRTCRoom.unpublishStream(MediaStreamType.RTC_MEDIA_STREAM_TYPE_VIDEO);
+        mRTCRoom.publishScreen(MediaStreamType.RTC_MEDIA_STREAM_TYPE_BOTH);
+        mSelfContainer.removeAllViews();
+        mVideoView = new VideoView(this);
+        Log.i("cc_test", "new mVideoView!");
+        mSelfContainer.addView(mVideoView);//, params);
+        Log.i("cc_test", "add mVideoView!");
+        ViewGroup.LayoutParams lp = mVideoView.getLayoutParams();
+        lp.width = LinearLayout.LayoutParams.MATCH_PARENT;
+        lp.height = LinearLayout.LayoutParams.MATCH_PARENT;
+        mVideoView.setLayoutParams(lp);
+
+//        VideoCanvas videoCanvas = new VideoCanvas();
+//        videoCanvas.uid = mUserId;
+//        videoCanvas.isScreen = false;
+//        videoCanvas.renderMode = mVideoConfig.mLocalVideoFillMode;
+//        videoCanvas.renderView = new TextureView(this);
+//        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+//                ViewGroup.LayoutParams.MATCH_PARENT,
+//                ViewGroup.LayoutParams.MATCH_PARENT);
+//        mSelfContainer.removeAllViews();
+//        mSelfContainer.addView(videoCanvas.renderView, params);
+//        // 设置本地视频渲染视图
+//        mRTCVideo.setLocalVideoCanvas(StreamIndex.STREAM_INDEX_MAIN, videoCanvas);
+
+        //读入本地视频
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("video/*"); //选择视频 （mp4 3gp 是android支持的视频格式）
+
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        requestLocalFilePermission();
+        startActivityForResult(intent, SELECT_LOCAL_VIDEO);
+
+
+    }
+
+    private void requestLocalFilePermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            String[] permissions = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE};
+            ActivityCompat.requestPermissions(this, permissions, 1);
+        }
+    }
+
+
+
+
+
+    public static final int REQUEST_CODE_OF_SCREEN_SHARING = 101;
+
+    /*** 向系统发起屏幕共享的权限请求*/
+    private void requestPermissionForScreenSharing() {
+        if (isFinishing()) {
+            CommonUtil.showShortToast(Utilities.getApplicationContext(), "请求屏幕共享权限失败:activity is null/finishing");
+            return;
+        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            CommonUtil.showShortToast(this,  "当前系统版本过低，无法支持屏幕共享");
+            return;
+        }
+        if (mProjectionManager == null) {
+            mProjectionManager = (MediaProjectionManager) Utilities.getApplicationContext().getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+        }
+        if (mProjectionManager != null) {
+            startActivityForResult(mProjectionManager.createScreenCaptureIntent(), REQUEST_CODE_OF_SCREEN_SHARING);
+        } else {
+            CommonUtil.showShortToast(this, "当前系统版本过低，无法支持屏幕共享");
+        }
+    }
+
+    /***
+     * 宿主Activity/Fragment的onActivityResult中调用
+     * 处理系统对屏幕分享权限请求的返回:如果用户同意授权开启前台服务
+     * */
+    public void handlePermissionResult(int resultCode, @Nullable Intent data) {
+        if (resultCode == Activity.RESULT_OK) {
+            startVideoShareCapture(data);
+        } else {
+            CommonUtil.showShortToast(Utilities.getApplicationContext(), "开启屏幕共享失败");
+        }
+    }
+
+    private void startVideoShareCapture(Intent data) {
+        startRXVideoShareService(data);
+        //编码参数
+        VideoEncoderConfig config = new VideoEncoderConfig();
+        Pair<Integer, Integer> videoSize = mVideoConfig.getResolution();
+        config.width = (videoSize.first != null && videoSize.first > 0) ? videoSize.first : 720;
+        config.height = (videoSize.second != null && videoSize.second > 0) ? videoSize.second : 1280;
+        config.frameRate = mVideoConfig.getFrameRate() > 0 ? mVideoConfig.getFrameRate() : 15;
+        config.maxBitrate = mVideoConfig.getBitRate() > 0 ? mVideoConfig.getBitRate() : 1600;
+        mRTCVideo.setScreenVideoEncoderConfig(config);
+        // 开启屏幕视频数据采集
+        mRTCVideo.startScreenCapture(ScreenMediaType.SCREEN_MEDIA_TYPE_VIDEO_AND_AUDIO, data);
+    }
+
+    private void startRXVideoShareService(@Nullable Intent data) {
+        Context context = Utilities.getApplicationContext();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            Intent iData = new Intent();
+            iData.putExtra(RXScreenCaptureService.KEY_LARGE_ICON, R.drawable.launcher_quick_start);
+            iData.putExtra(RXScreenCaptureService.KEY_SMALL_ICON, R.drawable.launcher_quick_start);
+            iData.putExtra(RXScreenCaptureService.KEY_LAUNCH_ACTIVITY, this.getClass().getCanonicalName());
+            iData.putExtra(RXScreenCaptureService.KEY_CONTENT_TEXT, "正在录制/投射您的屏幕");
+            iData.putExtra(RXScreenCaptureService.KEY_RESULT_DATA, data);
+            context.startForegroundService(RXScreenCaptureService.getServiceIntent(context, RXScreenCaptureService.COMMAND_LAUNCH, iData));
+        }
+    }
+
+
+
+//    /**
+//     * 停止屏幕流发布
+//     */
+//    @MainThread
+//    public void unPublishShareVideo() {
+//        mIsSharing = false;
+//        mRTCRoom.unpublishScreen(MediaStreamType.RTC_MEDIA_STREAM_TYPE_BOTH);
+//        mRTCRoom.publishStream(MediaStreamType.RTC_MEDIA_STREAM_TYPE_VIDEO);
+//    }
+//
+//    /**
+//     * 向RTC房间推屏幕流
+//     */
+//    @MainThread
+//    public void publishShareVideo() {
+//        mIsSharing = true;
+//        mRTCRoom.publishScreen(MediaStreamType.RTC_MEDIA_STREAM_TYPE_BOTH);
+//        mRTCVideo.setVideoSourceType(StreamIndex.STREAM_INDEX_SCREEN, VideoSourceType.VIDEO_SOURCE_TYPE_INTERNAL);
+//    }
+
+
+
+
+    private void stopVideoShare(){
+        mRTCVideo.stopScreenCapture();
+        setLocalRenderView(mUserId);
+    }
+
+
     private void showAlertDialog(String message) {
         runOnUiThread(() -> {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -783,6 +981,9 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
         if (mIsCapturing) {
             return;
         }
+
+        mRTCRoom.unpublishScreen(MediaStreamType.RTC_MEDIA_STREAM_TYPE_BOTH);
+        mRTCRoom.publishStream(MediaStreamType.RTC_MEDIA_STREAM_TYPE_VIDEO);
         mIsCapturing = true;
         boolean isCustomCapture = ConfigManger.getInstance().isCustomCapture();
         mRTCVideo.setVideoSourceType(StreamIndex.STREAM_INDEX_MAIN, isCustomCapture

@@ -19,4 +19,11 @@
         android:src="@drawable/ic_baseline_chat_24"
         android:layout_margin="12dp"/>
 
+    <ImageView
+        android:id="@+id/switch_share_video"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:src="@drawable/screen_share_on"
+        android:layout_margin="12dp"/>
+
 </LinearLayout>
