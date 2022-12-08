@@ -9,7 +9,6 @@ import androidx.fragment.app.FragmentTransaction;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -25,12 +24,9 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.ss.bytertc.engine.RTCEngine;
 import com.ss.rtc.demo.advanced.R;
-import com.ss.video.rtc.demo.advanced.rtctoken.AccessToken;
-import com.ss.video.rtc.demo.advanced.rtctoken.Utils;
 import com.ss.video.rtc.demo.advanced.utils.CommonUtil;
 
 import org.json.JSONException;
@@ -44,7 +40,6 @@ public class RoomCreation extends AppCompatActivity implements View.OnClickListe
 
     private static final int PERMISSIONS_REQUEST_CODE = 1000;
     private Context mContext;
-    private Context activityContext;
     private EditText mRoomInput;
     private EditText mUserInput;
     private EditText mPasswordInput;
@@ -56,7 +51,6 @@ public class RoomCreation extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_room_creation);
         mContext = getApplicationContext();
-        activityContext = this;
         TextView title = findViewById(R.id.title_bar_title_tv);
         title.setText(R.string.create_room);
         mRoomInput = findViewById(R.id.creation_room_id_input);
@@ -120,57 +114,31 @@ public class RoomCreation extends AppCompatActivity implements View.OnClickListe
         Log.d("query", "joinChannel: start query");
 
         RequestQueue queue = RoomInfoRequestSingleton.getInstance(this.getApplicationContext()).getRequestQueue();
-//        String test_string = "?RequestType=Login&roomid=" + roomId + "&password=" + password;
-//
-//        StringRequest testRequest = new StringRequest(Request.Method.GET, Constants.DATABASE_URI + test_string, new Response.Listener<String>() {
-//            @Override
-//            public void onResponse(String response) {
-//                try {
-//                    Log.d("query", "receive success");
-//                    JSONObject jsonObject = (JSONObject) new JSONObject(response).get("params");
-//                    String result = jsonObject.getString("Result");
-//                    Log.d("query", "the result is: " + result);
-//                    mResult = result;
-//                    if_continue = true;
-//
-//                } catch (JSONException e) {
-//                    Log.d("query", "JSONException error: " + e.getMessage());
-//                    e.printStackTrace();
-//                }
-//            }
-//        }, new Response.ErrorListener() {
-//            @Override
-//            public void onErrorResponse(VolleyError error) {
-//                Log.e("query", error.getMessage());
-//            }
-//        });
+
 
         StringRequest queryRequest = new StringRequest(Request.Method.POST, Constants.DATABASE_URI,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
                         try {
-                            Log.d("query", "receive success");
-                            Log.d("query", "the response is: " + response);
+//                            Log.d("query", "receive success");
+//                            Log.d("query", "the response is: " + response);
                             JSONObject jsonObject = (JSONObject) new JSONObject(response).get("params");
                             String result_query = jsonObject.getString("Result");
-                            Log.d("query", "the result is: " + result_query);
+//                            Log.d("query", "the result is: " + result_query);
 
-                            //mResult = result;
-                            //if_continue = true;
                             if(result_query.equals("null")) {
                                 StringRequest registerRequest = new StringRequest(Request.Method.POST, Constants.DATABASE_URI, new Response.Listener<String>() {
                                     @Override
                                     public void onResponse(String response) {
                                         try {
-                                            Log.d("register", "receive success");
+                                            //Log.d("register", "receive success");
                                             JSONObject jsonObject = (JSONObject) new JSONObject(response).get("params");
                                             String result_register = jsonObject.getString("Result");
-                                            Log.d("register", "the result is: " + result_register);
-                                            //mResult = result;
-                                            //if_continue = true;
+                                            //Log.d("register", "the result is: " + result_register);
+
                                             String token = jsonObject.getString("Token");
-                                            Log.d("register", "the token is: " + token);
+                                            //Log.d("register", "the token is: " + token);
                                             if(result_register.equals("failed")) {
                                                 Toast.makeText(getApplicationContext(), "创建房间失败，请联系技术人员", Toast.LENGTH_SHORT).show();
                                                 return;
@@ -232,145 +200,10 @@ public class RoomCreation extends AppCompatActivity implements View.OnClickListe
                 return map2params(roomId, userId, password, "Login");
             }
         };
-//        JsonObjectRequest queryRequest = new JsonObjectRequest(Request.Method.POST, Constants.DATABASE_URI, params,
-//                new Response.Listener<JSONObject>() {
-//                    @Override
-//                    public void onResponse(JSONObject response) {
-//                        try {
-//                            Log.d("query", "receive success");
-//                            String result = response.getString("Result");
-//                            Log.d("query", "the result is: " + result);
-//                            mResult = result;
-//                            if_continue = true;
-//                        } catch (JSONException e) {
-//                            Log.d("query", "JSONException error: " + e.getMessage());
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                }, new Response.ErrorListener() {
-//            @Override
-//            public void onErrorResponse(VolleyError error) {
-//                Log.e("query", error.getMessage());
-//            }
-//        });
-        Log.d("query", "add the query");
+
+        //Log.d("query", "add the query");
         RoomInfoRequestSingleton.getInstance(this).addToRequestQueue(queryRequest);
-        //RoomInfoRequestSingleton.getInstance(this).addToRequestQueue(testRequest);
-        Log.d("query", "after add the query");
-
-//        while(!if_continue) ;
-//
-//        if(!mResult.equals("null")) {
-//            Toast.makeText(this, "该房间号已存在，请修改房间号", Toast.LENGTH_SHORT).show();
-//            return;
-//        }
-
-        //if_continue = false;
-
-//        JSONObject register_params = new JSONObject();
-//        try {
-//            register_params.put("RequestType", "Register");
-//            register_params.put("roomid", roomId);
-//            register_params.put("password", password);
-//            if(check_flag_4) {
-//                register_params.put("maxpeople", 4);
-//            }
-//            else {
-//                register_params.put("maxpeople", 8);
-//            }
-//        } catch (JSONException e) {
-//            e.printStackTrace();
-//        }
-
-//        StringRequest registerRequest = new StringRequest(Request.Method.POST, Constants.DATABASE_URI, new Response.Listener<String>() {
-//            @Override
-//            public void onResponse(String response) {
-//                try {
-//                    Log.d("register", "receive success");
-//                    JSONObject jsonObject = (JSONObject) new JSONObject(response).get("params");
-//                    String result = jsonObject.getString("Result");
-//                    Log.d("register", "the result is: " + result);
-//                    mResult = result;
-//                    //if_continue = true;
-//                    mToken = jsonObject.getString("Token");
-//
-//                } catch (JSONException e) {
-//                    Log.d("query", "JSONException error: " + e.getMessage());
-//                    e.printStackTrace();
-//                }
-//            }
-//        }, new Response.ErrorListener() {
-//            @Override
-//            public void onErrorResponse(VolleyError error) {
-//                Log.e("register", error.getMessage());
-//            }
-//        }) {
-//            @Override
-//            protected Map<String, String> getParams() throws AuthFailureError {
-//                Map<String, String> register_params = new HashMap<String, String>();
-//                register_params.put("RequestType", "Register");
-//                register_params.put("roomid", roomId);
-//                register_params.put("password", password);
-//                if(check_flag_4) {
-//                    register_params.put("maxpeople", "4");
-//                }
-//                else {
-//                    register_params.put("maxpeople", "8");
-//                }
-//
-//                return register_params;
-//            }
-//        };
-
-//        JsonObjectRequest registerRequest = new JsonObjectRequest(Request.Method.POST, Constants.DATABASE_URI, params,
-//                new Response.Listener<JSONObject>() {
-//                    @Override
-//                    public void onResponse(JSONObject response) {
-//                        try {
-//                            String result = response.getString("Result");
-//                            mResult = result;
-//                            if_continue = true;
-//                            mToken = response.getString("Token");
-//                        } catch (JSONException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                }, new Response.ErrorListener() {
-//            @Override
-//            public void onErrorResponse(VolleyError error) {
-//                error.getMessage();
-//            }
-//        });
-
-//        RoomInfoRequestSingleton.getInstance(this).addToRequestQueue(registerRequest);
-
-        //while(!if_continue) ;
-
-//        if(mResult.equals("failed")) {
-//            Toast.makeText(this, "创建房间失败，请联系技术人员", Toast.LENGTH_SHORT).show();
-//            return;
-//        }
-
-
-//        SharedPreferences sharedPref = getSharedPreferences(getString(R.string.password_file), Context.MODE_PRIVATE);
-//        String exist_flag = sharedPref.getString(roomId, getString(R.string.default_preference_string));
-//        if(!exist_flag.equals(getString(R.string.default_preference_string))) {
-//            Toast.makeText(this, "该房间号已存在，请修改房间号", Toast.LENGTH_SHORT).show();
-//            return;
-//        }
-//
-//        SharedPreferences sharedPref_num = getSharedPreferences(getString(R.string.maxnum_file), Context.MODE_PRIVATE);
-//        SharedPreferences.Editor editor_num = sharedPref_num.edit();
-//        editor_num.putBoolean(roomId, check_flag_4);
-//        editor_num.apply();
-//
-//        SharedPreferences.Editor editor = sharedPref.edit();
-//        editor.putString(roomId, password);
-//        editor.apply();
-//
-//        initToken(roomId, userId);
-
-//        startActivity(startActivityBasedOnNum(roomId, userId, mToken, check_flag_4, this));
+        //Log.d("query", "after add the query");
 
     }
 
@@ -400,19 +233,6 @@ public class RoomCreation extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-//    private void initToken(String roomID, String userID) {
-//        AccessToken token = new AccessToken(Constants.APPID, Constants.APPKEY, roomID, userID);
-//        token.ExpireTime(Utils.getTimestamp() + 3600);
-//        token.AddPrivilege(AccessToken.Privileges.PrivSubscribeStream, 0);
-//        token.AddPrivilege(AccessToken.Privileges.PrivPublishStream, Utils.getTimestamp() + 3600);
-//        String s = token.Serialize();
-//
-//        SharedPreferences sharedPref = getSharedPreferences(getString(R.string.token_file), Context.MODE_PRIVATE);
-//        SharedPreferences.Editor editor = sharedPref.edit();
-//        editor.putString(roomID, s);
-//        editor.apply();
-//
-//    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {

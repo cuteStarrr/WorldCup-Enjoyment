@@ -7,8 +7,6 @@ import android.os.Bundle;
 import android.view.View;
 
 import com.ss.rtc.demo.advanced.R;
-import com.ss.video.rtc.demo.advanced.rtctoken.AccessToken;
-import com.ss.video.rtc.demo.advanced.rtctoken.Utils;
 
 public class StartActivity extends AppCompatActivity {
 

@@ -374,12 +374,10 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.d(TAG, "step into onCreate");
-        //while(flag) ;
+        //Log.d(TAG, "step into onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_room);
-        Log.d(TAG, "step into onCreate");
-        //while(flag) ;
+        //Log.d(TAG, "step into onCreate");
         if(this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT){
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         }
@@ -387,8 +385,7 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
         mRoomId = intent.getStringExtra(Constants.ROOM_ID_EXTRA);
         String userId = intent.getStringExtra(Constants.USER_ID_EXTRA);
         String token = intent.getStringExtra(Constants.TOKEN_EXTRA);
-        Log.d(TAG, "before initUI");
-        //while(flag) ;
+        //Log.d(TAG, "before initUI");
         mUserId = userId;
 
         initUI(mRoomId, userId);
@@ -532,7 +529,6 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
         int joinRoomRes = mRTCRoom.joinRoom(token,
                 UserInfo.create(userId, ""), roomConfig);
         Log.i(TAG, "initEngineAndJoinRoom: " + joinRoomRes);
-        //while (true) ;
     }
 
     private void startMediaCapture() {
