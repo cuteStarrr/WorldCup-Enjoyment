@@ -42,19 +42,19 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.chat_message_item,parent,false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.chat_message_item, parent,false);
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         ChatMessage msg = mMsgList.get(position);
-        if (msg.getType() == ChatMessage.TYPE_RECEIVED) {
+        if (msg.getSourceType() == ChatMessage.TYPE_RECEIVED) {
             holder.leftLayout.setVisibility(View.VISIBLE);
             holder.rightLayout.setVisibility(View.GONE);
             holder.leftMsg.setText(msg.getContent());
             holder.leftUser.setText(msg.getUser());
-        } else if (msg.getType() == ChatMessage.TYPE_SENT) {
+        } else if (msg.getSourceType() == ChatMessage.TYPE_SENT) {
             holder.rightLayout.setVisibility(View.VISIBLE);
             holder.leftLayout.setVisibility(View.GONE);
             holder.rightMsg.setText(msg.getContent());

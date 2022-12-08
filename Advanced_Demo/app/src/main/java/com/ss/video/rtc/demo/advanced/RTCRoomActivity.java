@@ -32,6 +32,7 @@ import android.view.SurfaceView;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -297,25 +298,25 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
         @Override
         public void onUserMessageReceived(String uid, String message) {
             super.onUserMessageReceived(uid, message);
-            showMessage("收到点对点消息", uid, message);
+            showMessage(ChatMessage.TYPE_PRIVATE, uid, message);
         }
 
         @Override
         public void onUserBinaryMessageReceived(String uid, ByteBuffer message) {
             super.onUserBinaryMessageReceived(uid, message);
-            showMessage("收到点对点消息", uid, byteBufferToString(message));
+            showMessage(ChatMessage.TYPE_PRIVATE, uid, byteBufferToString(message));
         }
 
         @Override
         public void onRoomMessageReceived(String uid, String message) {
             super.onRoomMessageReceived(uid, message);
-            showMessage("收到广播消息", uid, message);
+            showMessage(ChatMessage.TYPE_PUBLIC, uid, message);
         }
 
         @Override
         public void onRoomBinaryMessageReceived(String uid, ByteBuffer message) {
             super.onRoomBinaryMessageReceived(uid, message);
-            showMessage("收到广播消息", uid, byteBufferToString(message));
+            showMessage(ChatMessage.TYPE_PUBLIC, uid, byteBufferToString(message));
         }
 
         @Override
@@ -349,7 +350,7 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
         @Override
         public void onSEIMessageReceived(RemoteStreamKey remoteStreamKey, ByteBuffer message) {
             super.onSEIMessageReceived(remoteStreamKey, message);
-            runOnUiThread(() -> showMessage("收到SEI消息", remoteStreamKey.getUserId(), byteBufferToString(message)));
+            runOnUiThread(() -> showMessage(ChatMessage.TYPE_SEI, remoteStreamKey.getUserId(), byteBufferToString(message)));
         }
 
         @Override
@@ -424,6 +425,10 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
 
         setMoreFunctionButton();//设置更多功能按钮
 
+        //设置聊天小窗
+        mChatDialog = new ChatDialog();
+        mChatDialog.setConfig(mRTCRoom, mUserId);
+
         Log.e("RTCRoom", "RTCRoomActivity.onCreate  this:" + this);
     }
 
@@ -464,10 +469,7 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
                 button_chat.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        if (mChatDialog == null){
-                            mChatDialog = new ChatDialog();
-                            mChatDialog.setConfig(mRTCRoom, mUserId);
-                        }
+
                         FragmentManager fragmentManager = getSupportFragmentManager();
                         mChatDialog.show(fragmentManager,ChatDialog.TAG_FOR_SHOW);
                     }
@@ -1057,21 +1059,21 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
         mRTCVideo.setLocalVideoMirrorType(MirrorType.fromId(index));
     }
 
-    private void showMessage(String title, String uid, String message) {
-        runOnUiThread(() -> {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setCancelable(true);
-            builder.setTitle(title);
-            builder.setMessage(uid + ": " + message);
-            final AlertDialog dialog = builder.create();
-            dialog.show();
-            new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                if (dialog.isShowing()) {
-                    dialog.dismiss();
-                }
-            }, 2000);
-        });
-        ChatMessage message_t = new ChatMessage(message, uid, ChatMessage.TYPE_RECEIVED);
+    private void showMessage(int type, String uid, String message) {
+//        runOnUiThread(() -> {
+//            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//            builder.setCancelable(true);
+//            builder.setTitle(title);
+//            builder.setMessage(uid + ": " + message);
+//            final AlertDialog dialog = builder.create();
+//            dialog.show();
+//            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+//                if (dialog.isShowing()) {
+//                    dialog.dismiss();
+//                }
+//            }, 2000);
+//        });
+        ChatMessage message_t = new ChatMessage(message, uid, ChatMessage.TYPE_RECEIVED, type);
         mChatDialog.addMessage(message_t);
     }
 }
