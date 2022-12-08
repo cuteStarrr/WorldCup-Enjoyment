@@ -17,6 +17,7 @@
         android:icon="@drawable/launcher_quick_start"
         android:label="@string/app_name"
         android:roundIcon="@drawable/launcher_quick_start"
+        android:usesCleartextTraffic="true"
         android:supportsRtl="true"
         android:theme="@style/Theme.MinimRTCDemo">
         <activity

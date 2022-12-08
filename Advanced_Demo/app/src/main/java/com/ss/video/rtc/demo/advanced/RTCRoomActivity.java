@@ -133,6 +133,7 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
     private static final String TAG = "RTCRoomActivity";
 
     private String mRoomId;
+    //private Boolean flag = true;
 
     private ImageView mSpeakerIv;
     private ImageView mAudioIv;
@@ -369,17 +370,23 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d(TAG, "step into onCreate");
+        //while(flag) ;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_room);
+        Log.d(TAG, "step into onCreate");
+        //while(flag) ;
         if(this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT){
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         }
         Intent intent = getIntent();
         mRoomId = intent.getStringExtra(Constants.ROOM_ID_EXTRA);
         String userId = intent.getStringExtra(Constants.USER_ID_EXTRA);
-
+        String token = intent.getStringExtra(Constants.TOKEN_EXTRA);
+        Log.d(TAG, "before initUI");
+        //while(flag) ;
         initUI(mRoomId, userId);
-        initEngineAndJoinRoom(mRoomId, userId);
+        initEngineAndJoinRoom(mRoomId, userId, token);
         ConfigManger.getInstance().addObserver(this);
         setLocalRenderView(userId);
         startMediaCapture();
@@ -482,7 +489,7 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
 
     private final VideoConfigEntity mVideoConfig = ConfigManger.getInstance().getVideoConfig();
 
-    private void initEngineAndJoinRoom(String roomId, String userId) {
+    private void initEngineAndJoinRoom(String roomId, String userId, String token) {
         // 创建引擎
         mRTCVideo = RTCVideo.createRTCVideo(getApplicationContext(), Constants.APPID, mIRtcEngineEventHandler, null, null);
         // 设置视频发布参数
@@ -498,11 +505,12 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
         mRTCRoom.setRTCRoomEventHandler(mItcRoomEventHandler);
         RTCRoomConfig roomConfig = new RTCRoomConfig(ChannelProfile.CHANNEL_PROFILE_COMMUNICATION,
                 true, true, true);
-        SharedPreferences sharedPref = getSharedPreferences(getString(R.string.token_file), Context.MODE_PRIVATE);
-        String token = sharedPref.getString(roomId, getString(R.string.default_preference_string));
+//        SharedPreferences sharedPref = getSharedPreferences(getString(R.string.token_file), Context.MODE_PRIVATE);
+//        String token = sharedPref.getString(roomId, getString(R.string.default_preference_string));
         int joinRoomRes = mRTCRoom.joinRoom(token,
                 UserInfo.create(userId, ""), roomConfig);
         Log.i(TAG, "initEngineAndJoinRoom: " + joinRoomRes);
+        //while (true) ;
     }
 
     private void startMediaCapture() {

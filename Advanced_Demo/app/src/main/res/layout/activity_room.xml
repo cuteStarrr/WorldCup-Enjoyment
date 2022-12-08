@@ -108,10 +108,10 @@
         android:id="@+id/self_video_container"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@id/remote_video_1_container"
+        app:layout_constraintBottom_toTopOf="@id/bottom_bar"
+        app:layout_constraintTop_toBottomOf="@id/title_bar"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toLeftOf="@id/remote_video_0_container"
-        app:layout_constraintTop_toBottomOf="@id/title_bar"/>
+        app:layout_constraintRight_toLeftOf="@id/remote_video_0_container" />
 
     <TextView
         android:id="@+id/self_video_user_id_tv"
@@ -126,9 +126,9 @@
         android:id="@+id/remote_video_0_container"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@id/remote_video_2_container"
         app:layout_constraintLeft_toRightOf="@id/self_video_container"
-        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/remote_video_1_container"
+        app:layout_constraintBottom_toTopOf="@id/bottom_bar"
         app:layout_constraintTop_toBottomOf="@id/title_bar" />
 
     <TextView
@@ -145,9 +145,9 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintBottom_toTopOf="@id/bottom_bar"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toLeftOf="@id/remote_video_2_container"
-        app:layout_constraintTop_toBottomOf="@id/self_video_container" />
+        app:layout_constraintTop_toBottomOf="@id/title_bar"
+        app:layout_constraintLeft_toRightOf="@id/remote_video_0_container"
+        app:layout_constraintRight_toLeftOf="@id/remote_video_2_container" />
 
     <TextView
         android:id="@+id/remote_video_1_user_id_tv"
@@ -163,9 +163,9 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintBottom_toTopOf="@id/bottom_bar"
+        app:layout_constraintTop_toBottomOf="@id/title_bar"
         app:layout_constraintLeft_toRightOf="@id/remote_video_1_container"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/remote_video_0_container" />
+        app:layout_constraintRight_toRightOf="parent" />
 
     <TextView
         android:id="@+id/remote_video_2_user_id_tv"
@@ -175,5 +175,77 @@
         android:textSize="14dp"
         app:layout_constraintBottom_toBottomOf="@id/remote_video_2_container"
         app:layout_constraintRight_toRightOf="@id/remote_video_2_container" />
+
+<!--    <FrameLayout-->
+<!--        android:id="@+id/self_video_container"-->
+<!--        android:layout_width="0dp"-->
+<!--        android:layout_height="0dp"-->
+<!--        app:layout_constraintBottom_toTopOf="@id/remote_video_1_container"-->
+<!--        app:layout_constraintLeft_toLeftOf="parent"-->
+<!--        app:layout_constraintRight_toLeftOf="@id/remote_video_0_container"-->
+<!--        app:layout_constraintTop_toBottomOf="@id/title_bar"/>-->
+
+<!--    <TextView-->
+<!--        android:id="@+id/self_video_user_id_tv"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:textColor="@color/purple_700"-->
+<!--        android:textSize="14dp"-->
+<!--        app:layout_constraintBottom_toBottomOf="@id/self_video_container"-->
+<!--        app:layout_constraintRight_toRightOf="@id/self_video_container" />-->
+
+<!--    <FrameLayout-->
+<!--        android:id="@+id/remote_video_0_container"-->
+<!--        android:layout_width="0dp"-->
+<!--        android:layout_height="0dp"-->
+<!--        app:layout_constraintBottom_toTopOf="@id/remote_video_2_container"-->
+<!--        app:layout_constraintLeft_toRightOf="@id/self_video_container"-->
+<!--        app:layout_constraintRight_toRightOf="parent"-->
+<!--        app:layout_constraintTop_toBottomOf="@id/title_bar" />-->
+
+<!--    <TextView-->
+<!--        android:id="@+id/remote_video_0_user_id_tv"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:textColor="@color/purple_700"-->
+<!--        android:textSize="14dp"-->
+<!--        app:layout_constraintBottom_toBottomOf="@id/remote_video_0_container"-->
+<!--        app:layout_constraintRight_toRightOf="@id/remote_video_0_container" />-->
+
+<!--    <FrameLayout-->
+<!--        android:id="@+id/remote_video_1_container"-->
+<!--        android:layout_width="0dp"-->
+<!--        android:layout_height="0dp"-->
+<!--        app:layout_constraintBottom_toTopOf="@id/bottom_bar"-->
+<!--        app:layout_constraintLeft_toLeftOf="parent"-->
+<!--        app:layout_constraintRight_toLeftOf="@id/remote_video_2_container"-->
+<!--        app:layout_constraintTop_toBottomOf="@id/self_video_container" />-->
+
+<!--    <TextView-->
+<!--        android:id="@+id/remote_video_1_user_id_tv"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:textColor="@color/purple_700"-->
+<!--        android:textSize="14dp"-->
+<!--        app:layout_constraintBottom_toBottomOf="@id/remote_video_1_container"-->
+<!--        app:layout_constraintRight_toRightOf="@id/remote_video_1_container" />-->
+
+<!--    <FrameLayout-->
+<!--        android:id="@+id/remote_video_2_container"-->
+<!--        android:layout_width="0dp"-->
+<!--        android:layout_height="0dp"-->
+<!--        app:layout_constraintBottom_toTopOf="@id/bottom_bar"-->
+<!--        app:layout_constraintLeft_toRightOf="@id/remote_video_1_container"-->
+<!--        app:layout_constraintRight_toRightOf="parent"-->
+<!--        app:layout_constraintTop_toBottomOf="@id/remote_video_0_container" />-->
+
+<!--    <TextView-->
+<!--        android:id="@+id/remote_video_2_user_id_tv"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:textColor="@color/purple_700"-->
+<!--        android:textSize="14dp"-->
+<!--        app:layout_constraintBottom_toBottomOf="@id/remote_video_2_container"-->
+<!--        app:layout_constraintRight_toRightOf="@id/remote_video_2_container" />-->
 
 </androidx.constraintlayout.widget.ConstraintLayout>
