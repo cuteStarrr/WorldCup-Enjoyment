@@ -137,8 +137,8 @@ public class ShareScreenComponent implements LifecycleEventObserver {
         //编码参数
         VideoEncoderConfig config = new VideoEncoderConfig();
         Pair<Integer, Integer> videoSize = mVideoConfig.getResolution();
-        config.width = (videoSize.first != null && videoSize.first > 0) ? videoSize.first : 720;
-        config.height = (videoSize.second != null && videoSize.second > 0) ? videoSize.second : 1280;
+        config.width = (videoSize.first != null && videoSize.first > 0) ? videoSize.first : 1280;
+        config.height = (videoSize.second != null && videoSize.second > 0) ? videoSize.second : 720;
         config.frameRate = mVideoConfig.getFrameRate() > 0 ? mVideoConfig.getFrameRate() : 15;
         config.maxBitrate = mVideoConfig.getBitRate() > 0 ? mVideoConfig.getBitRate() : 1600;
         mRTCVideo.setScreenVideoEncoderConfig(config);

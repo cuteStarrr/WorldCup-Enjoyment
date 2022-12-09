@@ -42,6 +42,7 @@ import android.widget.Toast;
 import android.widget.VideoView;
 
 import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -154,11 +155,12 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
     private ImageView mBeautyIv;
     private TextView mUserIDTV;
     private ImageView mShareVideoIv;//开启/关闭分享本地视频图标
-    private VideoView mVideoView;
     private MediaProjectionManager mProjectionManager;//屏幕共享
 
     public static final int SELECT_LOCAL_VIDEO = 127;
+    public static final int STOP_SHARING_VIDEO_CODE = 825; //结束本地视频共享标志
 
+    private Uri mUri; //视频路径
     private boolean mShareVideo = false; //是否分享本地视频
     private boolean mIsSharing = false; //是否正在播放本地分享视频
     private boolean mIsSpeakerPhone = true;
@@ -166,6 +168,7 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
     private boolean mIsMuteVideo = false;
     private CameraId mCameraID = CameraId.CAMERA_ID_FRONT;
 
+//    private LinearLayout allContainer; //装所有视频
     private FrameLayout mSelfContainer;
     private FrameLayout[] mRemoteContainerArray;
     private TextView[] mUserIdTvArray;
@@ -489,20 +492,30 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if (mShareScreenComponent != null && requestCode == REQUEST_CODE_OF_SCREEN_SHARING) {
+        if (mShareScreenComponent != null && !mShareVideo && requestCode == REQUEST_CODE_OF_SCREEN_SHARING) {
             mShareScreenComponent.handlePermissionResult(resultCode, data);
         } else if (requestCode == SELECT_LOCAL_VIDEO && resultCode == Activity.RESULT_OK) {//是否选择，没选择就不会继续
             Log.i("cc_test", "into on Activity result 127");
-            Uri uri = data.getData();//得到uri，后面就是将uri转化成file的过程。
-            mVideoView.setVideoURI(uri);
+            mUri = data.getData();//得到uri，后面就是将uri转化成file的过程。
+//            mVideoView.setVideoURI(uri);
             requestPermissionForScreenSharing();
-            mVideoView.start();
+
+//            mVideoView.start();
+        } else if (mShareVideo && requestCode == REQUEST_CODE_OF_SCREEN_SHARING) {
+            if (resultCode == Activity.RESULT_OK) {
+                startVideoShareCapture(data);
+            } else {
+                Toast.makeText(this, "权限获取失败", Toast.LENGTH_SHORT).show();
+            }
+        } else if(mShareVideo && requestCode == STOP_SHARING_VIDEO_CODE){
+            updateShareVideoStatus();
         } else {
             super.onActivityResult(requestCode, resultCode, data);
         }
     }
 
     private void initUI(String roomId, String userId) {
+//        allContainer = findViewById(R.id.all_container);
         mSelfContainer = findViewById(R.id.self_video_container);
         mRemoteContainerArray = new FrameLayout[]{
                 findViewById(R.id.remote_video_0_container),
@@ -760,16 +773,21 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
     private void startVideoShare(){
         //开一个新页播视频
         mRTCRoom.unpublishStream(MediaStreamType.RTC_MEDIA_STREAM_TYPE_VIDEO);
-        mRTCRoom.publishScreen(MediaStreamType.RTC_MEDIA_STREAM_TYPE_BOTH);
-        mSelfContainer.removeAllViews();
-        mVideoView = new VideoView(this);
-        Log.i("cc_test", "new mVideoView!");
-        mSelfContainer.addView(mVideoView);//, params);
-        Log.i("cc_test", "add mVideoView!");
-        ViewGroup.LayoutParams lp = mVideoView.getLayoutParams();
-        lp.width = LinearLayout.LayoutParams.MATCH_PARENT;
-        lp.height = LinearLayout.LayoutParams.MATCH_PARENT;
-        mVideoView.setLayoutParams(lp);
+//        mSelfContainer.removeAllViews();
+//        allContainer.removeAllViews();
+//        mVideoView = new VideoView(this);
+//        Log.i("cc_test", "new mVideoView!");
+//        mSelfContainer.addView(mVideoView);//, params);
+//        Log.i("cc_test", "add mVideoView!");
+//        ViewGroup.LayoutParams lp = mVideoView.getLayoutParams();
+//        lp.width = LinearLayout.LayoutParams.MATCH_PARENT;
+//        lp.height = LinearLayout.LayoutParams.MATCH_PARENT;
+//        mVideoView.setLayoutParams(lp);
+//        mVideoView.findViewById(R.id.video_view);
+//        Log.i("cc_test", "set mVideoView!");
+
+
+
 
 //        VideoCanvas videoCanvas = new VideoCanvas();
 //        videoCanvas.uid = mUserId;
@@ -832,26 +850,32 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
      * 宿主Activity/Fragment的onActivityResult中调用
      * 处理系统对屏幕分享权限请求的返回:如果用户同意授权开启前台服务
      * */
-    public void handlePermissionResult(int resultCode, @Nullable Intent data) {
-        if (resultCode == Activity.RESULT_OK) {
-            startVideoShareCapture(data);
-        } else {
-            CommonUtil.showShortToast(Utilities.getApplicationContext(), "开启屏幕共享失败");
-        }
-    }
+
+//    public void handlePermissionResult(int resultCode, @Nullable Intent data) {
+//        if (resultCode == Activity.RESULT_OK) {
+//            startVideoShareCapture(data);
+//        } else {
+//            CommonUtil.showShortToast(Utilities.getApplicationContext(), "开启屏幕共享失败");
+//        }
+//    }
 
     private void startVideoShareCapture(Intent data) {
         startRXVideoShareService(data);
         //编码参数
         VideoEncoderConfig config = new VideoEncoderConfig();
         Pair<Integer, Integer> videoSize = mVideoConfig.getResolution();
-        config.width = (videoSize.first != null && videoSize.first > 0) ? videoSize.first : 720;
-        config.height = (videoSize.second != null && videoSize.second > 0) ? videoSize.second : 1280;
+        config.width = (videoSize.first != null && videoSize.first > 0) ? videoSize.first : 1280;
+        config.height = (videoSize.second != null && videoSize.second > 0) ? videoSize.second : 720;
         config.frameRate = mVideoConfig.getFrameRate() > 0 ? mVideoConfig.getFrameRate() : 15;
         config.maxBitrate = mVideoConfig.getBitRate() > 0 ? mVideoConfig.getBitRate() : 1600;
         mRTCVideo.setScreenVideoEncoderConfig(config);
         // 开启屏幕视频数据采集
         mRTCVideo.startScreenCapture(ScreenMediaType.SCREEN_MEDIA_TYPE_VIDEO_AND_AUDIO, data);
+        mRTCRoom.publishScreen(MediaStreamType.RTC_MEDIA_STREAM_TYPE_BOTH);
+
+        Intent intent = new Intent(RTCRoomActivity.this, VideoPlayingActivity.class);
+        intent.putExtra("uri", mUri.toString());
+        startActivityForResult(intent, STOP_SHARING_VIDEO_CODE);
     }
 
     private void startRXVideoShareService(@Nullable Intent data) {
@@ -986,6 +1010,17 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
         if (mIsCapturing) {
             return;
         }
+
+
+//        if(mVideoView != null){
+//            mVideoView.stopPlayback();
+////            allContainer.removeAllViews();
+////            allContainer.addView(mSelfContainer);
+////            allContainer.addView(mRemoteContainerArray[0]);
+////            allContainer.addView(mRemoteContainerArray[1]);
+////            allContainer.addView(mRemoteContainerArray[2]);
+//            mVideoView = null;
+//        }
 
         mRTCRoom.unpublishScreen(MediaStreamType.RTC_MEDIA_STREAM_TYPE_BOTH);
         mRTCRoom.publishStream(MediaStreamType.RTC_MEDIA_STREAM_TYPE_VIDEO);
