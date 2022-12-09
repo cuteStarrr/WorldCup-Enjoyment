@@ -181,7 +181,7 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
     private final VolcEffectManager mVolcEffectManager = new VolcEffectManager();
     private EffectModel mEffectModel;
 
-    private ChatDialog mChatDialog = null;
+    private ChatDialog mChatDialog = new ChatDialog();
 
     public int dpToPx(float dpValue) {
         final float scale = getApplicationContext().getResources().getDisplayMetrics().density;
@@ -432,7 +432,6 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
         setMoreFunctionButton();//设置更多功能按钮
 
         //设置聊天小窗
-        mChatDialog = new ChatDialog();
         mChatDialog.setConfig(mRTCRoom, mUserId);
 
         Log.e("RTCRoom", "RTCRoomActivity.onCreate  this:" + this);
