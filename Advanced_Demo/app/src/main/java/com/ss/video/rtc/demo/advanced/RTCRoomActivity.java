@@ -25,6 +25,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.text.TextUtils;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Pair;
 import android.view.LayoutInflater;
@@ -160,15 +161,15 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
     public static final int SELECT_LOCAL_VIDEO = 127;
     public static final int STOP_SHARING_VIDEO_CODE = 825; //结束本地视频共享标志
 
+
     private Uri mUri; //视频路径
     private boolean mShareVideo = false; //是否分享本地视频
-    private boolean mIsSharing = false; //是否正在播放本地分享视频
     private boolean mIsSpeakerPhone = true;
     private boolean mIsMuteAudio = false;
     private boolean mIsMuteVideo = false;
     private CameraId mCameraID = CameraId.CAMERA_ID_FRONT;
 
-//    private LinearLayout allContainer; //装所有视频
+    private ViewGroup.LayoutParams[] allLayoutParams; //记录布局 以便恢复
     private FrameLayout mSelfContainer;
     private FrameLayout[] mRemoteContainerArray;
     private TextView[] mUserIdTvArray;
@@ -275,7 +276,7 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
         public void onUserUnpublishScreen(String uid, MediaStreamType type, StreamRemoveReason reason) {
             Log.d(TAG, "onUserUnPublishScreen: " + uid);
             if (type != MediaStreamType.RTC_MEDIA_STREAM_TYPE_AUDIO) {
-                runOnUiThread(() -> removeRemoteView(uid));
+                runOnUiThread(() -> refresh_after_fullscreen(uid));
             }
         }
 
@@ -300,6 +301,7 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
                 runOnUiThread(() -> removeRemoteView(uid));
             }
         }
+
 
         @Override
         public void onUserMessageReceived(String uid, String message) {
@@ -394,6 +396,27 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
             showAlertDialog(String.format(Locale.US, "error: %d", err));
         }
     };
+
+
+
+
+
+
+
+    public void refresh_after_fullscreen(String uid){
+        mSelfContainer.setLayoutParams(allLayoutParams[0]);
+        for (int i = 0; i < mRemoteContainerArray.length; i++) {
+            mRemoteContainerArray[i].setLayoutParams(allLayoutParams[i+1]);
+        }
+        removeRemoteView(uid);
+    }
+
+
+
+
+
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -514,13 +537,19 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
     }
 
     private void initUI(String roomId, String userId) {
-//        allContainer = findViewById(R.id.all_container);
         mSelfContainer = findViewById(R.id.self_video_container);
         mRemoteContainerArray = new FrameLayout[]{
                 findViewById(R.id.remote_video_0_container),
                 findViewById(R.id.remote_video_1_container),
                 findViewById(R.id.remote_video_2_container)
         };
+        allLayoutParams = new ViewGroup.LayoutParams[]{
+                mSelfContainer.getLayoutParams(),
+                mRemoteContainerArray[0].getLayoutParams(),
+                mRemoteContainerArray[1].getLayoutParams(),
+                mRemoteContainerArray[2].getLayoutParams()
+        };
+
         mUserIdTvArray = new TextView[]{
                 findViewById(R.id.remote_video_0_user_id_tv),
                 findViewById(R.id.remote_video_1_user_id_tv),
@@ -667,6 +696,12 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
             container.addView((View) videoSink, params);
             mRTCVideo.setRemoteVideoSink(remoteStreamKey, videoSink, IVideoSink.PixelFormat.I420);
         } else {
+            if(sharingScreen){
+                mSelfContainer.setLayoutParams(new LinearLayout.LayoutParams(0, 0));
+                for (int i = 0; i < mRemoteContainerArray.length; i++) {
+                    mRemoteContainerArray[i].setLayoutParams(new LinearLayout.LayoutParams(0, 0));
+                }
+            }
             VideoCanvas videoCanvas = new VideoCanvas();
             videoCanvas.renderView = new SurfaceView(Utilities.getApplicationContext());
             videoCanvas.roomId = remoteStreamKey.getRoomId();
@@ -677,6 +712,10 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
                     ViewGroup.LayoutParams.MATCH_PARENT);
             container.removeAllViews();
             container.addView(videoCanvas.renderView, params);
+            container.setLayoutParams(new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT));
+            //改container布局 变大
             // 设置远端用户视频渲染视图
             mRTCVideo.setRemoteVideoCanvas(remoteStreamKey.getUserId(), remoteStreamKey.getStreamIndex(), videoCanvas);
         }
@@ -772,34 +811,6 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
     private void startVideoShare(){
         //开一个新页播视频
         mRTCRoom.unpublishStream(MediaStreamType.RTC_MEDIA_STREAM_TYPE_VIDEO);
-//        mSelfContainer.removeAllViews();
-//        allContainer.removeAllViews();
-//        mVideoView = new VideoView(this);
-//        Log.i("cc_test", "new mVideoView!");
-//        mSelfContainer.addView(mVideoView);//, params);
-//        Log.i("cc_test", "add mVideoView!");
-//        ViewGroup.LayoutParams lp = mVideoView.getLayoutParams();
-//        lp.width = LinearLayout.LayoutParams.MATCH_PARENT;
-//        lp.height = LinearLayout.LayoutParams.MATCH_PARENT;
-//        mVideoView.setLayoutParams(lp);
-//        mVideoView.findViewById(R.id.video_view);
-//        Log.i("cc_test", "set mVideoView!");
-
-
-
-
-//        VideoCanvas videoCanvas = new VideoCanvas();
-//        videoCanvas.uid = mUserId;
-//        videoCanvas.isScreen = false;
-//        videoCanvas.renderMode = mVideoConfig.mLocalVideoFillMode;
-//        videoCanvas.renderView = new TextureView(this);
-//        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
-//                ViewGroup.LayoutParams.MATCH_PARENT,
-//                ViewGroup.LayoutParams.MATCH_PARENT);
-//        mSelfContainer.removeAllViews();
-//        mSelfContainer.addView(videoCanvas.renderView, params);
-//        // 设置本地视频渲染视图
-//        mRTCVideo.setLocalVideoCanvas(StreamIndex.STREAM_INDEX_MAIN, videoCanvas);
 
         //读入本地视频
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
@@ -845,18 +856,6 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
         }
     }
 
-    /***
-     * 宿主Activity/Fragment的onActivityResult中调用
-     * 处理系统对屏幕分享权限请求的返回:如果用户同意授权开启前台服务
-     * */
-
-//    public void handlePermissionResult(int resultCode, @Nullable Intent data) {
-//        if (resultCode == Activity.RESULT_OK) {
-//            startVideoShareCapture(data);
-//        } else {
-//            CommonUtil.showShortToast(Utilities.getApplicationContext(), "开启屏幕共享失败");
-//        }
-//    }
 
     private void startVideoShareCapture(Intent data) {
         startRXVideoShareService(data);
@@ -889,28 +888,6 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
             context.startForegroundService(RXScreenCaptureService.getServiceIntent(context, RXScreenCaptureService.COMMAND_LAUNCH, iData));
         }
     }
-
-
-
-//    /**
-//     * 停止屏幕流发布
-//     */
-//    @MainThread
-//    public void unPublishShareVideo() {
-//        mIsSharing = false;
-//        mRTCRoom.unpublishScreen(MediaStreamType.RTC_MEDIA_STREAM_TYPE_BOTH);
-//        mRTCRoom.publishStream(MediaStreamType.RTC_MEDIA_STREAM_TYPE_VIDEO);
-//    }
-//
-//    /**
-//     * 向RTC房间推屏幕流
-//     */
-//    @MainThread
-//    public void publishShareVideo() {
-//        mIsSharing = true;
-//        mRTCRoom.publishScreen(MediaStreamType.RTC_MEDIA_STREAM_TYPE_BOTH);
-//        mRTCVideo.setVideoSourceType(StreamIndex.STREAM_INDEX_SCREEN, VideoSourceType.VIDEO_SOURCE_TYPE_INTERNAL);
-//    }
 
 
 
@@ -1011,16 +988,6 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
         }
 
 
-//        if(mVideoView != null){
-//            mVideoView.stopPlayback();
-////            allContainer.removeAllViews();
-////            allContainer.addView(mSelfContainer);
-////            allContainer.addView(mRemoteContainerArray[0]);
-////            allContainer.addView(mRemoteContainerArray[1]);
-////            allContainer.addView(mRemoteContainerArray[2]);
-//            mVideoView = null;
-//        }
-
         mRTCRoom.unpublishScreen(MediaStreamType.RTC_MEDIA_STREAM_TYPE_BOTH);
         mRTCRoom.publishStream(MediaStreamType.RTC_MEDIA_STREAM_TYPE_VIDEO);
         mIsCapturing = true;
@@ -1036,6 +1003,8 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
         } else {
             mRTCVideo.startVideoCapture();
         }
+
+
     }
 
     private void stopVideoCapture() {

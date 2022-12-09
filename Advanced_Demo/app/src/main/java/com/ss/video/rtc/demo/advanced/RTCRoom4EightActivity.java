@@ -12,8 +12,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.hardware.Camera;
+import android.media.projection.MediaProjectionManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -142,12 +145,20 @@ public class RTCRoom4EightActivity extends AppCompatActivity implements ConfigMa
     private ImageView mVideoIv;
     private ImageView mBeautyIv;
     private TextView mUserIDTV;
+    private ImageView mShareVideoIv;//开启/关闭分享本地视频图标
+    private MediaProjectionManager mProjectionManager;//屏幕共享
 
+    public static final int SELECT_LOCAL_VIDEO = 127;
+    public static final int STOP_SHARING_VIDEO_CODE = 825; //结束本地视频共享标志
+
+    private Uri mUri; //视频路径
+    private boolean mShareVideo = false; //是否分享本地视频
     private boolean mIsSpeakerPhone = true;
     private boolean mIsMuteAudio = false;
     private boolean mIsMuteVideo = false;
     private CameraId mCameraID = CameraId.CAMERA_ID_FRONT;
 
+    private ViewGroup.LayoutParams[] allLayoutParams; //记录布局 以便恢复
     private FrameLayout mSelfContainer;
     private FrameLayout[] mRemoteContainerArray;
     private TextView[] mUserIdTvArray;
@@ -250,7 +261,7 @@ public class RTCRoom4EightActivity extends AppCompatActivity implements ConfigMa
         public void onUserUnpublishScreen(String uid, MediaStreamType type, StreamRemoveReason reason) {
             Log.d(TAG, "onUserUnPublishScreen: " + uid);
             if (type != MediaStreamType.RTC_MEDIA_STREAM_TYPE_AUDIO) {
-                runOnUiThread(() -> removeRemoteView(uid));
+                runOnUiThread(() -> refresh_after_fullscreen(uid));
             }
         }
 
@@ -370,6 +381,22 @@ public class RTCRoom4EightActivity extends AppCompatActivity implements ConfigMa
         }
     };
 
+
+
+
+
+
+    public void refresh_after_fullscreen(String uid){
+        mSelfContainer.setLayoutParams(allLayoutParams[0]);
+        for (int i = 0; i < mRemoteContainerArray.length; i++) {
+            mRemoteContainerArray[i].setLayoutParams(allLayoutParams[i+1]);
+        }
+        removeRemoteView(uid);
+    }
+
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -431,6 +458,15 @@ public class RTCRoom4EightActivity extends AppCompatActivity implements ConfigMa
                         ft.commitAllowingStateLoss();
                     }
                 });
+
+
+
+
+                //设置切换分享本地视频的按钮的点击事件
+                mShareVideoIv = popupWindow.getContentView().findViewById(R.id.switch_share_video);
+                mShareVideoIv.setImageResource(mShareVideo ? R.drawable.screen_share_on : R.drawable.screen_share_off);
+                mShareVideoIv.setColorFilter(mShareVideo ? Color.TRANSPARENT : Color.GRAY);
+//                mShareVideoIv.setOnClickListener((v) -> updateShareVideoStatus());
             }
         });
 

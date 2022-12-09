@@ -1,17 +1,14 @@
 package com.ss.video.rtc.demo.advanced;
 
-import android.app.ActionBar;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.media.MediaMetadataRetriever;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.MediaController;
 import android.widget.VideoView;
 import com.ss.rtc.demo.advanced.R;
