@@ -99,6 +99,7 @@ import com.ss.video.rtc.demo.basic_module.utils.Utilities;
 import org.webrtc.RXScreenCaptureService;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -239,6 +240,7 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
         public void onUserJoined(UserInfo userInfo, int elapsed) {
             super.onUserJoined(userInfo, elapsed);
             Log.d(TAG, "onUserJoined: " + userInfo.getUid());
+            mChatDialog.addReceiver(userInfo.getUid());
         }
 
         /**
@@ -249,6 +251,7 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
             super.onUserLeave(uid, reason);
             Log.d(TAG, "onUserLeave: " + uid);
             runOnUiThread(() -> removeRemoteView(uid));
+            mChatDialog.removeReceiver(uid);
         }
 
         /**
