@@ -712,9 +712,11 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
                     ViewGroup.LayoutParams.MATCH_PARENT);
             container.removeAllViews();
             container.addView(videoCanvas.renderView, params);
-            container.setLayoutParams(new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT));
+            if(sharingScreen) {
+                container.setLayoutParams(new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT));
+            }
             //改container布局 变大
             // 设置远端用户视频渲染视图
             mRTCVideo.setRemoteVideoCanvas(remoteStreamKey.getUserId(), remoteStreamKey.getStreamIndex(), videoCanvas);
