@@ -18,6 +18,7 @@ import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.ViewFlipper;
 
@@ -62,7 +63,7 @@ public class ChatDialog extends DialogFragment {
     private int fade_level = 0; //0-完全没有fade， 1-fade了一半
     private AlphaAnimation mAlphaAnimation_1;
     private AlphaAnimation mAlphaAnimation_2;
-    private static int FADE_TIME = 10000; //最后一次收到消息到fade之间的时间
+    private static final int FADE_TIME = 15000; //最后一次收到消息到fade之间的时间
 
     public void setConfig(RTCRoom mRTCRoom, String mUserId) {
         this.mRTCRoom = mRTCRoom;
@@ -182,6 +183,8 @@ public class ChatDialog extends DialogFragment {
             @Override
             public void onClick(View v) {
                 mViewFlipper.showNext();
+                resetFade();
+                handler.removeCallbacks(runnable_fade);
             }
         });
 
@@ -191,6 +194,16 @@ public class ChatDialog extends DialogFragment {
             public void onClick(View v) {
                 Log.d(TAG, "onClick: ");
                 resetFade();
+            }
+        });
+
+        //收信人返回
+        ImageView btn_back = view.findViewById(R.id.image_back_receiver);
+        btn_back.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mViewFlipper.showPrevious();
+                handler.postDelayed(runnable_fade, FADE_TIME);
             }
         });
 
@@ -237,6 +250,7 @@ public class ChatDialog extends DialogFragment {
         this.mReceiver = receiver;
         mViewFlipper.showPrevious();
         mTextview_receiver.setText(receiver.getUser());
+        handler.postDelayed(runnable_fade, FADE_TIME);
         requireActivity().runOnUiThread(() -> mReceiverAdapter.notifyItemChanged(position));
     }
 }

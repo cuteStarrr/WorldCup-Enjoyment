@@ -28,6 +28,7 @@ import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Pair;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.SurfaceView;
 import android.view.TextureView;
@@ -327,17 +328,17 @@ public class RTCRoom4EightActivity extends AppCompatActivity implements ConfigMa
             showMessage(ChatMessage.TYPE_PUBLIC, uid, byteBufferToString(message));
         }
 
-        @Override
-        public void onUserMessageSendResult(long msgid, int error) {
-            super.onUserMessageSendResult(msgid, error);
-            String tip;
-            if (error != 0) {
-                tip = String.format(Locale.US, "点对点消息发送失败(%d)", error);
-            } else {
-                tip = "点对点消息发送成功";
-            }
-            runOnUiThread(() -> SafeToast.show(RTCRoom4EightActivity.this, tip, Toast.LENGTH_SHORT));
-        }
+//        @Override
+//        public void onUserMessageSendResult(long msgid, int error) {
+//            super.onUserMessageSendResult(msgid, error);
+//            String tip;
+//            if (error != 0) {
+//                tip = String.format(Locale.US, "点对点消息发送失败(%d)", error);
+//            } else {
+//                tip = "点对点消息发送成功";
+//            }
+//            runOnUiThread(() -> SafeToast.show(RTCRoom4EightActivity.this, tip, Toast.LENGTH_SHORT));
+//        }
 
         @Override
         public void onRoomError(int err) {
@@ -1107,6 +1108,17 @@ public class RTCRoom4EightActivity extends AppCompatActivity implements ConfigMa
 //            }, 2000);
 //        });
         ChatMessage message_t = new ChatMessage(message, uid, ChatMessage.TYPE_RECEIVED, type);
+        if (mChatDialog.getDialog()==null || !(mChatDialog.getDialog().isShowing())){
+            runOnUiThread(()->{
+                Toast toast;
+                if (type == ChatMessage.TYPE_PUBLIC)
+                    toast = Toast.makeText(RTCRoom4EightActivity.this, uid+":"+message, Toast.LENGTH_SHORT);
+                else
+                    toast = Toast.makeText(RTCRoom4EightActivity.this, uid+"（私聊）:"+message, Toast.LENGTH_SHORT);
+                toast.setGravity(Gravity.BOTTOM|Gravity.START, 0, 0);
+                toast.show();
+            });
+        }
         mChatDialog.addMessage(message_t);
     }
 }
