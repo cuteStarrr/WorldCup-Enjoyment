@@ -3,6 +3,7 @@ package com.ss.video.rtc.demo.advanced.chat;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.graphics.drawable.Drawable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,6 +43,8 @@ public class ReceiverAdapter extends RecyclerView.Adapter<ReceiverAdapter.ViewHo
             this.selected = selected;
             if (selected)
                 setSelected();
+            else
+                setUnSelected();
             this.mReceiverAdapter = receiverAdapter;
         }
 
@@ -53,10 +56,10 @@ public class ReceiverAdapter extends RecyclerView.Adapter<ReceiverAdapter.ViewHo
             textView_name.setCompoundDrawables(null, null, drawable, null);
         }
 
-//        public void setUnSelected(){
-//            textView_name.setTextColor(mView.getResources().getColor(R.color.black));
-//            textView_name.setCompoundDrawables(null, null, null, null);
-//        }
+        public void setUnSelected(){
+            textView_name.setTextColor(mView.getResources().getColor(R.color.black));
+            textView_name.setCompoundDrawables(null, null, null, null);
+        }
 
         @Override
         public void onClick(View v) {
@@ -81,6 +84,7 @@ public class ReceiverAdapter extends RecyclerView.Adapter<ReceiverAdapter.ViewHo
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         Receiver receiver = mReceiverList.get(position);
+        //Log.d("ReceiverAdapter", "onBindViewHolder: "+position+' '+receiver.equals(this.selected_receiver));
         holder.bind(receiver, receiver.equals(this.selected_receiver), this);
     }
 
@@ -97,9 +101,10 @@ public class ReceiverAdapter extends RecyclerView.Adapter<ReceiverAdapter.ViewHo
     }
 
     public void changeSelected(int position, Receiver receiver){
-        mChatDialog.onReceiverChanged(receiver, position);
+        int position_p = this.selected_receiver_index;
         this.selected_receiver = receiver;
         this.selected_receiver_index = position;
+        mChatDialog.onReceiverChanged(receiver, position_p);
     }
 
 }

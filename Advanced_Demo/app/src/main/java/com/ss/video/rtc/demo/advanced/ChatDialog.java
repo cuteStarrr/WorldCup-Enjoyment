@@ -179,6 +179,8 @@ public class ChatDialog extends DialogFragment {
 
         //设置点击发送至事件
         mViewFlipper = view.findViewById(R.id.viewFlipper_chat);
+        if (mReceiver!=null)
+            mTextview_receiver.setText(mReceiver.getUser());
         mTextview_receiver.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -247,10 +249,11 @@ public class ChatDialog extends DialogFragment {
     }
 
     public void onReceiverChanged(Receiver receiver, int position) {
+        //Log.d(TAG, "onReceiverChanged: "+position);
+        requireActivity().runOnUiThread(() -> mReceiverAdapter.notifyItemChanged(position));
         this.mReceiver = receiver;
         mViewFlipper.showPrevious();
         mTextview_receiver.setText(receiver.getUser());
         handler.postDelayed(runnable_fade, FADE_TIME);
-        requireActivity().runOnUiThread(() -> mReceiverAdapter.notifyItemChanged(position));
     }
 }
