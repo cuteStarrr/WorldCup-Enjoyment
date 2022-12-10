@@ -715,6 +715,19 @@ public class RTCRoom4EightActivity extends AppCompatActivity implements ConfigMa
         if (mIsMuteVideo) {
             // 关闭视频采集
             stopVideoCapture();
+            // 这里换成黑屏
+            VideoCanvas videoCanvas = new VideoCanvas();
+            videoCanvas.uid = "";
+            videoCanvas.isScreen = false;
+            videoCanvas.renderMode = mVideoConfig.mLocalVideoFillMode;
+            videoCanvas.renderView = new TextureView(this);
+            FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT);
+            mSelfContainer.removeAllViews();
+            mSelfContainer.addView(videoCanvas.renderView, params);
+            // 设置本地视频渲染视图
+            mRTCVideo.setLocalVideoCanvas(StreamIndex.STREAM_INDEX_MAIN, videoCanvas);
         } else {
             // 开启视频采集
             startVideoCapture();
