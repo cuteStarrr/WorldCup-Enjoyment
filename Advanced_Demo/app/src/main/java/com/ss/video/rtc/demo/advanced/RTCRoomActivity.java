@@ -782,6 +782,7 @@ public class RTCRoomActivity extends AppCompatActivity implements ConfigManger.C
             // 关闭视频采集
             stopVideoCapture();
             // 这里换成黑屏
+            mRTCRoom.unpublishStream(MediaStreamType.RTC_MEDIA_STREAM_TYPE_VIDEO);
             VideoCanvas videoCanvas = new VideoCanvas();
             videoCanvas.uid = "";
             videoCanvas.isScreen = false;
