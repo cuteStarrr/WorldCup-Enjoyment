@@ -179,7 +179,7 @@ public class RTCRoom4EightActivity extends AppCompatActivity implements ConfigMa
     private FrameLayout mSelfContainer;
     private FrameLayout[] mRemoteContainerArray;
     private TextView[] mUserIdTvArray;
-    private final RemoteStreamKey[] mShowRemoteStreamArray = new RemoteStreamKey[3];
+    private final RemoteStreamKey[] mShowRemoteStreamArray = new RemoteStreamKey[7];
 
     private RTCVideo mRTCVideo;
     private RTCRoom mRTCRoom;
